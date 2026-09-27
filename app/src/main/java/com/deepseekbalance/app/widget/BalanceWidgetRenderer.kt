@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import android.widget.RemoteViews
 import com.deepseekbalance.app.MainActivity
 import com.deepseekbalance.app.R
@@ -27,9 +28,22 @@ object BalanceWidgetRenderer {
     ) {
         val state = SharedPreferencesBalanceCache(context).read()
         val snapshot = state.snapshot
+        val backgroundBitmap = WidgetImageStore(context).loadWidgetBitmap()
+        val visuals = WidgetAppearance.visuals(hasCustomImage = backgroundBitmap != null)
 
         appWidgetIds.forEach { appWidgetId ->
             val views = RemoteViews(context.packageName, R.layout.balance_widget)
+            views.setViewVisibility(
+                R.id.widget_background_image,
+                if (visuals.showImage) View.VISIBLE else View.GONE,
+            )
+            views.setViewVisibility(
+                R.id.widget_background_scrim,
+                if (visuals.showScrim) View.VISIBLE else View.GONE,
+            )
+            backgroundBitmap?.let {
+                views.setImageViewBitmap(R.id.widget_background_image, it)
+            }
             views.setTextViewText(
                 R.id.widget_balance,
                 snapshot?.let { "¥${it.totalBalance}" } ?: "¥ --",
@@ -38,10 +52,28 @@ object BalanceWidgetRenderer {
                 R.id.widget_status,
                 statusText(state.errorMessage, snapshot?.fetchedAtEpochMillis, snapshot?.isAvailable),
             )
+            applyTextColors(context, views, visuals, isError = state.errorMessage != null)
             views.setOnClickPendingIntent(R.id.widget_root, refreshPendingIntent(context))
             views.setOnClickPendingIntent(R.id.widget_open, openAppPendingIntent(context))
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
+    }
+
+    private fun applyTextColors(
+        context: Context,
+        views: RemoteViews,
+        visuals: WidgetVisuals,
+        isError: Boolean,
+    ) {
+        val customColors = visuals.textColors
+        val primaryColor = customColors?.primary ?: context.getColor(R.color.widget_text)
+        val mutedColor = customColors?.muted ?: context.getColor(R.color.widget_muted)
+        val errorColor = customColors?.error ?: context.getColor(R.color.widget_error)
+
+        views.setTextColor(R.id.widget_title, mutedColor)
+        views.setTextColor(R.id.widget_open, mutedColor)
+        views.setTextColor(R.id.widget_balance, primaryColor)
+        views.setTextColor(R.id.widget_status, if (isError) errorColor else mutedColor)
     }
 
     private fun statusText(

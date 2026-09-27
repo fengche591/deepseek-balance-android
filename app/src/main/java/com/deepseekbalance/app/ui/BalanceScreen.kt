@@ -1,5 +1,8 @@
 package com.deepseekbalance.app.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,9 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +51,11 @@ import java.util.Date
 fun BalanceScreen(viewModel: BalanceViewModel) {
     val state by viewModel.uiState.collectAsState()
     var showApiKey by remember { mutableStateOf(false) }
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        uri?.let(viewModel::setWidgetImage)
+    }
 
     Scaffold(
         topBar = {
@@ -170,6 +180,75 @@ fun BalanceScreen(viewModel: BalanceViewModel) {
                     }
                     Text(
                         text = "刷新",
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "桌面组件背景",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = if (state.hasCustomWidgetImage) {
+                    "已使用自定义图片"
+                } else {
+                    "当前使用默认背景"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            state.widgetImageErrorMessage?.let { message ->
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Button(
+                    onClick = {
+                        imagePicker.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly,
+                            ),
+                        )
+                    },
+                    enabled = !state.isSavingWidgetImage,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    if (state.isSavingWidgetImage) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Icon(Icons.Filled.Wallpaper, contentDescription = null)
+                    }
+                    Text(
+                        text = "选择图片",
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = viewModel::clearWidgetImage,
+                    enabled = state.hasCustomWidgetImage && !state.isSavingWidgetImage,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(Icons.Filled.Restore, contentDescription = null)
+                    Text(
+                        text = "恢复默认",
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }

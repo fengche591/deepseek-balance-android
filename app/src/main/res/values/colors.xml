@@ -5,4 +5,5 @@
     <color name="widget_text">#1B1F23</color>
     <color name="widget_muted">#5E656C</color>
     <color name="widget_error">#BA1A1A</color>
+    <color name="widget_scrim">#66000000</color>
 </resources>

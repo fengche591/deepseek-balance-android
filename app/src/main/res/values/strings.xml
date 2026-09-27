@@ -4,4 +4,6 @@
     <string name="widget_description">显示 DeepSeek 人民币账户余额</string>
     <string name="widget_open">打开 App</string>
     <string name="widget_title">DeepSeek 余额</string>
+    <string name="widget_balance_placeholder">¥ --</string>
+    <string name="widget_refresh_hint">点击刷新</string>
 </resources>
