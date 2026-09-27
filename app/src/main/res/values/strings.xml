@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DeepSeek 余额</string>
+    <string name="widget_description">显示 DeepSeek 人民币账户余额</string>
+    <string name="widget_open">打开 App</string>
+    <string name="widget_title">DeepSeek 余额</string>
+</resources>
